@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpendWise - Expense Tracker and Analytics</title>
+<meta name="description" content="SpendWise is a free Android app to track income, expenses, notes and reminders, with simple analytics.">
+<style>
+  :root {
+    --forest: #0F6B4F;
+    --mint: #34D399;
+    --danger: #EF4444;
+    --amber: #F59E0B;
+    --page: #F8FAF7;
+    --card: #FFFFFF;
+    --ink: #1B2A24;
+    --muted: #6B7C75;
+    --track: #E6EEEA;
+    --line: #E1E7E3;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--page);
+    line-height: 1.6;
+  }
+  a { color: var(--forest); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  section { padding: 72px 0; }
+  h1, h2, h3 { line-height: 1.25; margin: 0 0 12px; }
+  h1 { font-size: clamp(2rem, 5vw, 3.2rem); }
+  h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); }
+  h3 { font-size: 1.15rem; }
+  p { margin: 0 0 12px; }
+  .muted { color: var(--muted); }
+  .eyebrow {
+    color: var(--forest);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Header */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(248, 250, 247, 0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { font-weight: 700; font-size: 1.1rem; color: var(--forest); text-decoration: none; }
+  .nav-links { display: flex; gap: 20px; }
+  .nav-links a { color: var(--ink); text-decoration: none; font-size: 0.95rem; }
+  .nav-links a:hover { color: var(--forest); }
+
+  /* Buttons */
+  .btn {
+    display: inline-block;
+    background: var(--forest);
+    color: #fff;
+    padding: 14px 26px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  .btn:hover { background: #0B5A42; }
+  .btn-outline {
+    background: transparent;
+    color: var(--forest);
+    border: 1.5px solid var(--forest);
+  }
+  .btn-outline:hover { background: #E8F3EE; }
+
+  /* Hero */
+  .hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; padding: 72px 0; }
+  .hero p.lead { font-size: 1.1rem; color: var(--muted); max-width: 520px; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+  .phone {
+    width: 260px; height: 500px; margin: 0 auto;
+    background: var(--page);
+    border: 10px solid #1B2A24;
+    border-radius: 36px;
+    padding: 22px 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(27, 42, 36, 0.15);
+  }
+  .phone .greet { text-align: center; font-size: 0.75rem; color: var(--muted); }
+  .phone .bal { text-align: center; font-size: 1.9rem; font-weight: 700; color: var(--forest); margin: 2px 0 10px; }
+  .phone .figs { display: flex; justify-content: center; gap: 28px; font-size: 0.75rem; margin-bottom: 14px; }
+  .phone .figs b { display: block; font-size: 0.85rem; }
+  .phone .mini-card { background: var(--card); border-radius: 14px; padding: 12px; margin-bottom: 10px; font-size: 0.8rem; }
+  .phone .row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); font-size: 0.8rem; }
+  .phone .fab {
+    position: absolute; right: 16px; bottom: 18px;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--forest); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 26px;
+  }
+
+  /* About */
+  .about-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 32px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .stat .num { font-size: 1.8rem; font-weight: 700; color: var(--forest); }
+
+  /* Features */
+  .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 36px; }
+  .feature { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .visual { background: var(--page); border-radius: 14px; padding: 18px; margin-bottom: 16px; min-height: 180px; display: flex; align-items: center; justify-content: center; }
+  .visual svg { width: 100%; max-width: 360px; height: auto; }
+  .tag { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; margin-left: 6px; vertical-align: middle; }
+  .tag-exp { background: rgba(239, 68, 68, 0.12); color: var(--danger); }
+  .tag-inc { background: rgba(15, 107, 79, 0.12); color: var(--forest); }
+  .txn { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--card); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; font-size: 0.9rem; }
+  .txn .bar { width: 4px; align-self: stretch; border-radius: 2px; }
+  .txn .amt { margin-left: auto; font-weight: 700; }
+
+  /* Download */
+  .download {
+    background: var(--forest); color: #fff;
+    border-radius: 24px; padding: 48px 32px; text-align: center;
+  }
+  .download h2 { color: #fff; }
+  .download p { color: #D6EFE5; max-width: 620px; margin: 0 auto 20px; }
+  .download .btn { background: #fff; color: var(--forest); }
+  .download .btn:hover { background: #E8F3EE; }
+  .download small { display: block; margin-top: 16px; color: #BFE5D6; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 32px; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .step .n { width: 32px; height: 32px; border-radius: 50%; background: #E8F3EE; color: var(--forest); font-weight: 700; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+
+  /* Reviews */
+  .reviews-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 28px; margin-top: 32px; align-items: start; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .summary { text-align: center; }
+  .summary .avg { font-size: 3rem; font-weight: 700; color: var(--ink); line-height: 1; }
+  .stars { display: inline-flex; gap: 4px; }
+  .stars svg { width: 22px; height: 22px; }
+  .star-btn { background: none; border: none; padding: 2px; cursor: pointer; }
+  .star-btn svg { width: 32px; height: 32px; fill: #D6DDD9; transition: fill 0.1s; }
+  .star-btn.on svg { fill: var(--amber); }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .field label { font-size: 0.9rem; font-weight: 600; }
+  .field input, .field textarea {
+    font: inherit; padding: 12px 14px; border: 1px solid var(--line);
+    border-radius: 12px; background: var(--page); color: var(--ink);
+  }
+  .field textarea { min-height: 100px; resize: vertical; }
+  .field input:focus, .field textarea:focus { outline: 2px solid var(--mint); border-color: transparent; }
+  .error { color: var(--danger); font-size: 0.88rem; min-height: 1.2em; margin: 0 0 10px; }
+  .review { border-top: 1px solid var(--line); padding: 16px 0; }
+  .review:first-child { border-top: none; padding-top: 0; }
+  .review .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .review .who { font-weight: 600; }
+  .review .when { font-size: 0.8rem; color: var(--muted); }
+  .review p { margin: 6px 0 0; }
+  .empty { color: var(--muted); text-align: center; padding: 24px 0; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--line); padding: 28px 0; color: var(--muted); font-size: 0.9rem; }
+  footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; text-align: center; }
+    .hero p.lead { margin: 0 auto; }
+    .hero-actions { justify-content: center; }
+    .about-grid, .steps { grid-template-columns: 1fr; }
+    .feature-grid, .reviews-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top">SpendWise</a>
+    <nav class="nav-links">
+      <a href="#about">About</a>
+      <a href="#features">Features</a>
+      <a href="#download">Download</a>
+      <a href="#reviews">Reviews</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section style="padding-bottom: 0;">
+    <div class="wrap hero">
+      <div>
+        <p class="eyebrow">Free Android app</p>
+        <h1>Know where your money goes.</h1>
+        <p class="lead">SpendWise tracks your income and expenses, keeps notes on each transaction, sets reminders for upcoming bills, and shows simple analytics so you can spend with intention.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#download">Download the app</a>
+          <a class="btn btn-outline" href="#features">See features</a>
+        </div>
+      </div>
+      <div>
+        <div class="phone" aria-label="Preview of the SpendWise home screen">
+          <p class="greet">Good morning</p>
+          <p class="greet" style="color: var(--ink); font-weight: 600; margin-bottom: 8px;">Total balance</p>
+          <div class="bal">₹3,980</div>
+          <div class="figs">
+            <div><span class="muted">Income</span><b style="color: var(--forest);">₹5,000</b></div>
+            <div><span class="muted">Expenses</span><b style="color: var(--danger);">₹1,020</b></div>
+          </div>
+          <div class="mini-card">
+            <div class="muted">Total spent</div>
+            <div style="font-weight: 700; font-size: 1.05rem;">₹1,020</div>
+            <div style="height: 6px; background: var(--track); border-radius: 3px; margin-top: 8px; overflow: hidden;">
+              <div style="width: 20%; height: 100%; background: var(--forest);"></div>
+            </div>
+          </div>
+          <p style="font-weight: 600; font-size: 0.85rem; margin: 10px 0 4px;">Latest</p>
+          <div class="row">
+            <span>Lunch <span class="muted" style="font-size: 0.72rem;">Food</span></span>
+            <span style="color: var(--danger); font-weight: 600;">-₹250</span>
+          </div>
+          <div class="fab">+</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="wrap">
+      <p class="eyebrow">About the app</p>
+      <h2>Built for students and everyday budgets</h2>
+      <p class="muted" style="max-width: 680px;">SpendWise is built around a simple idea: you can only manage money you can see. Everything you record stays on your phone. There is no sign-up, no bank linking, and no advertising.</p>
+      <div class="about-grid">
+        <div class="stat">
+          <div class="num">100%</div>
+          <p class="muted" style="margin: 4px 0 0;">Offline. Your data stays on your device.</p>
+        </div>
+        <div class="stat">
+          <div class="num">Free</div>
+          <p class="muted" style="margin: 4px 0 0;">No subscription and no hidden paywall.</p>
+        </div>
+        <div class="stat">
+          <div class="num">Kotlin</div>
+          <p class="muted" style="margin: 4px 0 0;">Built with Jetpack Compose and Material 3.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" style="padding-top: 0;">
+    <div class="wrap">
+      <p class="eyebrow">Features</p>
+      <h2>Everything in one simple home screen</h2>
+      <p class="muted" style="max-width: 680px;">Each feature is designed to be understood at a glance.</p>
+
+      <div class="feature-grid">
+
+        <!-- Transactions -->
+        <div class="feature">
+          <div class="visual">
+            <div style="width: 100%;">
+              <div class="txn"><span class="bar" style="background: var(--danger);"></span><div><b>Lunch</b> <span class="tag tag-exp">Expense</span><div class="muted" style="font-size: 0.8rem;">Food, UPI</div></div><span class="amt" style="color: var(--danger);">-₹250</span></div>
+              <div class="txn"><span class="bar" style="background: var(--forest);"></span><div><b>Salary</b> <span class="tag tag-inc">Income</span><div class="muted" style="font-size: 0.8rem;">Allowance</div></div><span class="amt" style="color: var(--forest);">+₹5,000</span></div>
+            </div>
+          </div>
+          <h3>Income and expenses at a glance</h3>
+          <p class="muted">Every transaction shows its type with a colored bar and tag, so you never misread a row. Add, edit, search and filter from one list.</p>
+        </div>
+
+        <!-- Category breakdown -->
+        <div class="feature">
+          <div class="visual">
+            <svg viewBox="0 0 360 170" role="img" aria-label="Donut chart of spending by category">
+              <g transform="translate(85,85)">
+                <circle r="62" fill="none" stroke="#F59E0B" stroke-width="22" stroke-dasharray="117 390" transform="rotate(-90)"/>
+                <circle r="62" fill="none" stroke="#3B82F6" stroke-width="22" stroke-dasharray="78 390" stroke-dashoffset="-117" transform="rotate(-90)"/>
+                <circle r="62" fill="none" stroke="#EC4899" stroke-width="22" stroke-dasharray="97 390" stroke-dashoffset="-195" transform="rotate(-90)"/>
+                <circle r="62" fill="none" stroke="#8B5CF6" stroke-width="22" stroke-dasharray="58 390" stroke-dashoffset="-292" transform="rotate(-90)"/>
+                <circle r="62" fill="none" stroke="#9CA3AF" stroke-width="22" stroke-dasharray="40 390" stroke-dashoffset="-350" transform="rotate(-90)"/>
+                <text text-anchor="middle" y="4" font-size="14" font-weight="700" fill="#1B2A24">Spending</text>
+              </g>
+              <g font-size="12" fill="#1B2A24">
+                <circle cx="190" cy="40" r="5" fill="#F59E0B"/><text x="202" y="44">Food 30%</text>
+                <circle cx="190" cy="66" r="5" fill="#3B82F6"/><text x="202" y="70">Travel 20%</text>
+                <circle cx="190" cy="92" r="5" fill="#EC4899"/><text x="202" y="96">Shopping 25%</text>
+                <circle cx="190" cy="118" r="5" fill="#8B5CF6"/><text x="202" y="122">Education 15%</text>
+                <circle cx="190" cy="144" r="5" fill="#9CA3AF"/><text x="202" y="148">Other 10%</text>
+              </g>
+            </svg>
+          </div>
+          <h3>See where the money goes</h3>
+          <p class="muted">A category breakdown shows which areas take the biggest share of your spending, from food and travel to bills and education.</p>
+        </div>
+
+        <!-- Monthly trend -->
+        <div class="feature">
+          <div class="visual">
+            <svg viewBox="0 0 360 170" role="img" aria-label="Bar chart of monthly spending">
+              <line x1="20" y1="140" x2="340" y2="140" stroke="#E1E7E3"/>
+              <rect x="50" y="70" width="28" height="70" rx="6" fill="#34D399"/>
+              <rect x="110" y="50" width="28" height="90" rx="6" fill="#34D399"/>
+              <rect x="170" y="90" width="28" height="50" rx="6" fill="#34D399"/>
+              <rect x="230" y="40" width="28" height="100" rx="6" fill="#0F6B4F"/>
+              <rect x="290" y="75" width="28" height="65" rx="6" fill="#34D399"/>
+              <g font-size="12" fill="#6B7C75" text-anchor="middle">
+                <text x="64" y="158">Jun</text><text x="124" y="158">Jul</text><text x="184" y="158">Aug</text>
+                <text x="244" y="158">Sep</text><text x="304" y="158">Oct</text>
+              </g>
+            </svg>
+          </div>
+          <h3>Track trends over months</h3>
+          <p class="muted">Compare this month with previous ones to see whether your spending is rising, falling, or staying steady.</p>
+        </div>
+
+        <!-- Reminders -->
+        <div class="feature">
+          <div class="visual">
+            <div style="width: 100%; background: var(--card); border-radius: 14px; padding: 14px;">
+              <b style="font-size: 0.95rem;">Reminders</b>
+              <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--danger);"></span>
+                <div><div style="font-size: 0.9rem;">Electricity bill</div><div class="muted" style="font-size: 0.78rem;">Due in 3 days, 9:00 AM</div></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--forest);"></span>
+                <div><div style="font-size: 0.9rem;">Rent</div><div class="muted" style="font-size: 0.78rem;">Due in 19 days, 12:00 AM</div></div>
+              </div>
+            </div>
+          </div>
+          <h3>Reminders that clean up after themselves</h3>
+          <p class="muted">Set a due date and time for a bill or goal. Once the time passes, the reminder removes itself, so your list only shows what matters.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD -->
+  <section id="download" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="download">
+        <h2>Download SpendWise</h2>
+        <p>Get the Android app as an APK file. It works on Android 8.0 and newer.</p>
+        <a class="btn" href="downloads/SpendWise.apk" download>Download APK</a>
+        <small>Version 0.2 (early development). Your phone may ask you to allow installs from this browser.</small>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="n">1</div>
+          <h3>Download</h3>
+          <p class="muted" style="margin: 0;">Tap the download button above to save the APK file.</p>
+        </div>
+        <div class="step">
+          <div class="n">2</div>
+          <h3>Allow the install</h3>
+          <p class="muted" style="margin: 0;">If prompted, turn on "Allow from this source" for your browser in Settings.</p>
+        </div>
+        <div class="step">
+          <div class="n">3</div>
+          <h3>Start fresh</h3>
+          <p class="muted" style="margin: 0;">The app opens empty. Add your own income, expenses and reminders.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVIEWS -->
+  <section id="reviews" style="padding-top: 0;">
+    <div class="wrap">
+      <p class="eyebrow">Reviews</p>
+      <h2>What users think</h2>
+      <p class="muted">Tell us what works, what doesn't, and what you'd like to see next.</p>
+
+      <div class="reviews-grid">
+
+        <!-- Summary and form -->
+        <div>
+          <div class="panel summary" style="margin-bottom: 20px;">
+            <div class="avg" id="avg">0.0</div>
+            <div class="stars" id="avgStars" aria-hidden="true"></div>
+            <p class="muted" id="count" style="margin: 8px 0 0;">No reviews yet</p>
+          </div>
+
+          <form class="panel" id="reviewForm" novalidate>
+            <h3>Leave a review</h3>
+
+            <div class="field">
+              <label>Your rating</label>
+              <div id="starPicker" role="radiogroup" aria-label="Rating from 1 to 5 stars"></div>
+            </div>
+
+            <div class="field">
+              <label for="name">Name (optional)</label>
+              <input id="name" type="text" maxlength="40" placeholder="Anonymous">
+            </div>
+
+            <div class="field">
+              <label for="comment">Feedback</label>
+              <textarea id="comment" maxlength="500" placeholder="What did you like, or what should we improve?"></textarea>
+            </div>
+
+            <p class="error" id="formError"></p>
+            <button class="btn" type="submit" style="width: 100%;">Submit review</button>
+          </form>
+        </div>
+
+        <!-- List -->
+        <div class="panel" id="reviewList">
+          <div class="empty">No reviews yet. Be the first to share feedback.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>SpendWise, an Android expense tracker by Nishant</span>
+    <span><a href="#top">Back to top</a></span>
+  </div>
+</footer>
+
+<script>
+  // Review storage.
+  // This version saves reviews in the visitor's own browser, so they are only visible on that device.
+  // To collect reviews from all visitors, set REVIEW_ENDPOINT to a form service URL (for example Formspree or Google Apps Script)
+  // and the reviews will be sent there instead. See the notes below the code.
+  var STORAGE_KEY = "spendwise-reviews";
+  var REVIEW_ENDPOINT = ""; // e.g. "https://formspree.io/f/your-id"
+
+  var STAR_PATH = "M12 2.5l2.94 6.01 6.63.96-4.8 4.68 1.13 6.6L12 17.6l-5.9 3.15 1.13-6.6-4.8-4.68 6.63-.96z";
+  var selectedRating = 0;
+
+  function starSvg(filled, color) {
+    var fill = filled ? (color || "#F59E0B") : "#D6DDD9";
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + STAR_PATH + '" fill="' + fill + '"/></svg>';
+  }
+
+  function renderStars(container, value) {
+    var html = "";
+    for (var i = 1; i <= 5; i++) html += starSvg(i <= Math.round(value));
+    container.innerHTML = html;
+  }
+
+  function escapeHtml(text) {
+    var div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function loadReviews() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveReviews(list) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch (e) {
+      // Storage may be disabled in private browsing; the review still shows for this session
+    }
+  }
+
+  function formatDate(iso) {
+    return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function renderReviews() {
+    var reviews = loadReviews();
+    var list = document.getElementById("reviewList");
+    var avgEl = document.getElementById("avg");
+    var countEl = document.getElementById("count");
+    var avgStars = document.getElementById("avgStars");
+
+    if (reviews.length === 0) {
+      avgEl.textContent = "0.0";
+      avgStars.innerHTML = "";
+      countEl.textContent = "No reviews yet";
+      list.innerHTML = '<div class="empty">No reviews yet. Be the first to share feedback.</div>';
+      return;
+    }
+
+    var total = reviews.reduce(function (sum, r) { return sum + r.rating; }, 0);
+    var average = total / reviews.length;
+    avgEl.textContent = average.toFixed(1);
+    renderStars(avgStars, average);
+    countEl.textContent = reviews.length + (reviews.length === 1 ? " review" : " reviews");
+
+    list.innerHTML = reviews
+      .slice()
+      .sort(function (a, b) { return new Date(b.date) - new Date(a.date); })
+      .map(function (r) {
+        return '<div class="review">' +
+          '<div class="head"><span class="who">' + escapeHtml(r.name) + '</span>' +
+          '<span class="stars">' + [1, 2, 3, 4, 5].map(function (i) { return starSvg(i <= r.rating); }).join("") + '</span></div>' +
+          '<div class="when">' + formatDate(r.date) + '</div>' +
+          '<p>' + escapeHtml(r.comment) + '</p>' +
+          '</div>';
+      })
+      .join("");
+  }
+
+  function buildStarPicker() {
+    var picker = document.getElementById("starPicker");
+    picker.innerHTML = "";
+    for (var i = 1; i <= 5; i++) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "star-btn";
+      btn.setAttribute("aria-label", i + (i === 1 ? " star" : " stars"));
+      btn.dataset.value = i;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + STAR_PATH + '"/></svg>';
+      btn.addEventListener("click", function () {
+        selectedRating = Number(this.dataset.value);
+        highlightPicker();
+        document.getElementById("formError").textContent = "";
+      });
+      picker.appendChild(btn);
+    }
+  }
+
+  function highlightPicker() {
+    var buttons = document.querySelectorAll(".star-btn");
+    buttons.forEach(function (btn) {
+      btn.classList.toggle("on", Number(btn.dataset.value) <= selectedRating);
+    });
+  }
+
+  function submitReview(event) {
+    event.preventDefault();
+    var errorEl = document.getElementById("formError");
+    var name = document.getElementById("name").value.trim() || "Anonymous";
+    var comment = document.getElementById("comment").value.trim();
+
+    if (selectedRating === 0) {
+      errorEl.textContent = "Select a star rating first.";
+      return;
+    }
+    if (comment.length < 5) {
+      errorEl.textContent = "Write at least a few words of feedback.";
+      return;
+    }
+
+    var review = { name: name, rating: selectedRating, comment: comment, date: new Date().toISOString() };
+
+    if (REVIEW_ENDPOINT) {
+      fetch(REVIEW_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(review)
+      }).catch(function () { /* show a message in a later version */ });
+    }
+
+    var reviews = loadReviews();
+    reviews.push(review);
+    saveReviews(reviews);
+
+    document.getElementById("reviewForm").reset();
+    selectedRating = 0;
+    highlightPicker();
+    errorEl.textContent = "";
+    renderReviews();
+  }
+
+  document.getElementById("reviewForm").addEventListener("submit", submitReview);
+  buildStarPicker();
+  renderReviews();
+</script>
+
+</body>
+</html>
